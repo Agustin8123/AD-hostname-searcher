@@ -5,10 +5,7 @@ QUE HACE ESTE SCRIPT
 ---------------------
 1. Consulta Active Directory (via PowerShell) para obtener todos los
    objetos de computadora registrados en el dominio.
-2. Reconoce la nomenclatura reglamentaria:
-       ATZZTEPC000xxx   -> equipos de escritorio (familia PC)
-       ATZZTENB000xxx   -> notebooks (familia NB)
-   donde "000" es fijo y "xxx" es el numero de maquina.
+2. Reconoce la nomenclatura reglamentaria
 3. Detecta los numeros "huecos" (no usados) dentro de cada familia: los
    nombres que, segun AD, estarian disponibles para un equipo nuevo.
 4. Hace una verificacion complementaria por red (ping), tanto de los
@@ -74,9 +71,8 @@ OPCIONES
     --maximo N      Fuerza el limite superior de busqueda de huecos a N
                      (equivale a --rango NUMERO_MINIMO-N). No se combina
                      con --rango.
-    --rango I-F     Busca huecos solo entre I y F, por ejemplo 020-124,
-                     sin importar el numero mas alto que haya en AD. No
-                     se combina con --maximo.
+    --rango I-F     Busca huecos solo entre I y F sin importar el numero
+                    mas alto que haya en AD. No se combina con --maximo.
     --solo-libres   En el listado, muestra unicamente los nombres libres.
 
 SOBRE LA CANTIDAD DE EQUIPOS
