@@ -13,7 +13,7 @@ QUE HACE ESTE SCRIPT
    decision de "disponible / ocupado" se basa siempre en Active
    Directory, nunca en si responde o no el ping.
 
-QUE NO HACE (a proposito)
+QUE NO HACE
 ----------------------------
 - No modifica nada en Active Directory. Solo lee (Get-ADComputer).
 - No guarda ni pide contrasenas: usa la sesion de Windows actual.
@@ -26,6 +26,9 @@ ARCHIVOS INCLUIDOS
                                     en una terminal. Tiene que estar en
                                     la misma carpeta que el .py.
 - README.md                         Este archivo.
+- Dependencias de poweShell.md      Pequeño instructivo sobre como instalar
+                                    las herramientas de CLI de AD. Necesarias
+                                    para el script.
 
 REQUISITOS PARA USARLO CON UN AD
 --------------------------------------------
