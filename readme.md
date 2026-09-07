@@ -28,7 +28,7 @@ ARCHIVOS INCLUIDOS
                                     interactivo (--tui) sin escribir nada
                                     en una terminal. Tiene que estar en
                                     la misma carpeta que el .py.
-- readme.txt                       Este archivo.
+- README.md                         Este archivo.
 
 REQUISITOS PARA USARLO CON UN AD
 --------------------------------------------
