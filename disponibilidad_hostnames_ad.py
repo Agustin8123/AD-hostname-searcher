@@ -20,8 +20,8 @@ from typing import Optional
 # Si mas adelante aparece una tercera familia, alcanza con agregarla a FAMILIAS: el PATRON se arma
 # solo a partir de esta lista.
 
-PREFIJO = "ATZZTE"
-FAMILIAS = ["PC", "NB"]
+PREFIJO = "PREFIJOAQUI"
+FAMILIAS = ["FAMILIA1", "FAMILIA2"]
 
 # Cantidad de digitos que ocupa el numero de maquina (la parte variable
 # del nombre, despues del "000" fijo). HOY son 3 digitos porque asi es
@@ -35,7 +35,7 @@ NUMERO_MAXIMO = 10 ** DIGITOS_NUMERO - 1  # 999 mientras DIGITOS_NUMERO sea 3
 # Arma el patron dinamicamente, por ejemplo: ^ATZZTE(PC|NB)000(\d{3})$
 #   grupo 1 = familia (PC / NB)
 #   grupo 2 = numero de maquina (DIGITOS_NUMERO digitos)
-PATRON = re.compile(rf"^{PREFIJO}({'|'.join(FAMILIAS)})000(\d{{{DIGITOS_NUMERO}}})$")
+PATRON = re.compile(rf"^{PREFIJO}({'|'.join(FAMILIAS)})PREFIJOAQUI(\d{{{DIGITOS_NUMERO}}})$")
 
 # Configuracion del ping de verificacion complementaria.
 PING_TIMEOUT_MS = 500
