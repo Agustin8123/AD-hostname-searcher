@@ -1,89 +1,57 @@
-========================================================================
- Buscador de nombres de host disponibles en Active Directory
+# AD Hostname Searcher
 
-QUE HACE ESTE SCRIPT
----------------------
-1. Consulta Active Directory (via PowerShell) para obtener todos los
-   objetos de computadora registrados en el dominio.
-2. Reconoce la nomenclatura reglamentaria
-3. Detecta los numeros "huecos" (no usados) dentro de cada familia: los
-   nombres que, segun AD, estarian disponibles para un equipo nuevo.
-4. Hace una verificacion complementaria por red (ping), tanto de los
-   nombres ocupados como de los huecos, SOLO como dato extra: la
-   decision de "disponible / ocupado" se basa siempre en Active
-   Directory, nunca en si responde o no el ping.
+Aplicación gráfica nativa para Windows 10/11 x64, escrita en C++17. Consulta los equipos de Active Directory, detecta huecos de numeración y verifica DNS/ping en paralelo. No incluye modo de demostración ni necesita Python, PowerShell o RSAT para funcionar.
 
-QUE NO HACE
-----------------------------
-- No modifica nada en Active Directory. Solo lee (Get-ADComputer).
-- No guarda ni pide contrasenas: usa la sesion de Windows actual.
+## Abrir la aplicación
 
-ARCHIVOS INCLUIDOS
----------------------
-- disponibilidad_hostnames_ad.py   El script principal.
-- Abrir_TUI.bat                    Doble click para abrir el menu
-                                    interactivo (--tui) sin escribir nada
-                                    en una terminal. Tiene que estar en
-                                    la misma carpeta que el .py.
-- README.md                         Este archivo.
-- Dependencias de poweShell.md      Pequeño instructivo sobre como instalar
-                                    las herramientas de CLI de AD. Necesarias
-                                    para el script.
+Ejecutar `dist/ADHostnameSearcher.exe` con doble clic. Es portable; puede copiarse a otra PC Windows. Usa la cuenta de Windows actual y solo lee AD. Se necesita conexión al dominio (o VPN) y permisos de lectura. No solicita credenciales ni modifica el directorio.
 
-REQUISITOS PARA USARLO CON UN AD
---------------------------------------------
-- Windows, en un equipo unido al dominio (o con el modulo de PowerShell
-  "ActiveDirectory" / RSAT instalado).
-- Python 3.9 o superior (no usa librerias externas, solo la libreria
-  estandar). Link de descarga: https://www.python.org/downloads/
-- Una cuenta de dominio con permisos de LECTURA sobre los objetos de
-  computadora (la mayoria de las cuentas normales ya los tienen).
+1. Configurar la nomenclatura: **prefijo + familia + bloque fijo + número**. Por ejemplo, para `ATZZTEPC000042`: prefijo `ATZZTE`, bloque fijo `000`, 3 dígitos. La familia `PC` se descubre automáticamente; no existe una lista fija de familias en el código.
+2. Elegir rango automático, completo o personalizado. El automático va desde 0 hasta el mayor número registrado de cada familia; el personalizado incluye ambos extremos. Un equipo registrado con número 0 se considera ocupado.
+3. Pulsar **Consultar AD**. Se cargan todas las familias detectadas que respeten la nomenclatura. Los nombres fuera del formato se cuentan en el estado inferior y no se usan para generar huecos.
+4. Marcar una, varias o todas las familias. La selección funciona con casillas, sin necesidad de Ctrl. La búsqueda de nombre/IP y el filtro de estado se aplican junto con las familias.
+5. Pulsar **Verificar ping + IP** para verificar todas las filas de las familias seleccionadas, incluidos los huecos. Los filtros de texto/estado solo afectan la visualización. La IP aparece inmediatamente a la derecha del dispositivo al terminar la operación.
+6. **Ver resumen** muestra el primer nombre candidato de cada familia seleccionada y la lista de equipos fuera de nomenclatura. El texto se puede seleccionar y copiar.
 
-COMO PROBARLO
--------------------------------------------------------
-    python disponibilidad_hostnames_ad.py --demo --sin-red
+Para cambiar formato o rango después de consultar, usar **Aplicar formato y rango**. Reutiliza la consulta y borra verificaciones de red anteriores. **Consultar AD** vuelve a leer el directorio. El formato se guarda por usuario en `%LOCALAPPDATA%\ADHostnameSearcher\settings.ini`; no se guarda el inventario.
 
-Esto usa una lista de nombres fija (identica al ejemplo del documento de
-la pasantia) en lugar de llamar a PowerShell, y "--sin-red" evita los
-pings (que de todas formas fallarian contra nombres que no existen en tu
-red). Sirve para validar el reconocimiento de nomenclatura y la deteccion
-de huecos antes de tener el laboratorio de AD armado.
+## Interpretación de resultados
 
-USO NORMAL CON UN AD
-----------------------------------
-    python disponibilidad_hostnames_ad.py
+- **Registrado**: el nombre existe en AD, independientemente de que responda al ping.
+- **No registrado**: hueco en AD. Revisar antes de asignar; no representa una reserva de nombre.
+- **Conflicto**: un nombre no registrado en AD responde a ICMP.
+- **Sin respuesta**: no respondió a la prueba; no implica que esté apagado o que el nombre esté libre.
+- **Sin IPv4 / DNS**: no se obtuvo una dirección IPv4. La prueba de red de esta versión es IPv4.
+- **Error de red**: falló la resolución o la operación ICMP; no se interpreta como disponibilidad.
 
-MODO INTERACTIVO (TUI)
-----------------------------------------------------------
-    python disponibilidad_hostnames_ad.py --tui
+Se conservan todas las IPv4 resueltas aunque el ping no responda. Para equipos registrados se usa `dNSHostName` si AD lo proporciona; para huecos se usa el nombre generado con los sufijos DNS configurados en Windows. Si hay varias IPv4 se muestran juntas y se informa respuesta si alguna contesta. Antes de ejecutar ping, la columna IP muestra un guion.
 
-O directamente doble click en Abrir_TUI.bat.
+## Rendimiento y cancelación
 
-Abre un menu que pregunta paso a paso: fuente de datos (demo o AD real),
-si verificar la red, que rango de numeros analizar (automatico, completo,
-o un tramo especifico como 020-124), y si mostrar todo o solo lo libre.
-Al final arma exactamente los mismos parametros que se pasarian por
-linea de comandos.
+Consulta LDAP nativa paginada, sin iniciar procesos externos, tabla virtual y hasta 30 tareas DNS/ICMP simultáneas. El ping espera hasta 500 ms por dirección. La resolución DNS y el acceso al dominio dependen de la red y pueden tardar más; migrar a C++ no elimina estos tiempos. Las operaciones se ejecutan fuera del hilo de la interfaz.
 
-OPCIONES
------------
-    --tui           Abre el menu interactivo de arriba, en vez de leer
-                     los flags de abajo.
-    --demo          Usa datos de ejemplo en vez de consultar AD real.
-    --sin-red       No hace ping a los equipos (mas rapido).
-    --maximo N      Fuerza el limite superior de busqueda de huecos a N
-                     (equivale a --rango NUMERO_MINIMO-N). No se combina
-                     con --rango.
-    --rango I-F     Busca huecos solo entre I y F sin importar el numero
-                    mas alto que haya en AD. No se combina con --maximo.
-    --solo-libres   En el listado, muestra unicamente los nombres libres.
+Cancelar deja de programar tareas nuevas y espera las llamadas de Windows en curso; conserva el informe anterior. Cerrar durante una consulta también espera esas llamadas. Las consultas fallidas o incompletas no se presentan como un inventario vacío. El informe está limitado a 250.000 filas para evitar consumos excesivos; para rangos mayores se debe reducir el intervalo.
 
-SOBRE LA CANTIDAD DE EQUIPOS
-----------------------------------
-Consultar AD y reconocer la nomenclatura es practicamente instantaneo
-aunque haya cientos o miles de equipos (es una sola consulta a
-PowerShell mas comparaciones de texto). Lo unico que podria ser lento es
-el ping de verificacion, asi que TODOS los pings se lanzan en paralelo
-(ver MAX_PINGS_CONCURRENTES), --sin-red sigue siendo la
-opcion mas veloz.
-========================================================================
+## Compilar
+
+Con un toolchain MinGW-w64 que incluya C++17 y `windres`:
+
+```powershell
+./build.ps1 -Toolchain C:\ruta\w64devkit\bin
+```
+
+El script compila, ejecuta las pruebas de lógica y genera `dist/ADHostnameSearcher.exe` enlazado estáticamente con el runtime C++. El toolchain no se descarga automáticamente ni se incluye en Git.
+
+Alternativamente, con Visual Studio Build Tools (C++ y Windows SDK) y CMake:
+
+```powershell
+cmake -S . -B build/vs -A x64
+cmake --build build/vs --config Release
+ctest --test-dir build/vs -C Release --output-on-failure
+```
+
+En ese caso el ejecutable está en `build/vs/Release/ADHostnameSearcher.exe`.
+
+Las pruebas cubren familias dinámicas, formato, límites de rango, huecos, número cero, conservación del FQDN y clasificación de conflictos. La consulta y el ping de equipos corporativos necesitan una comprobación adicional en el dominio real.
+
+Implementación basada en [consultas paginadas ADSI](https://learn.microsoft.com/en-us/windows/win32/adsi/paging-with-idirectorysearch) y [ICMP de Windows](https://learn.microsoft.com/en-us/windows/win32/api/icmpapi/nf-icmpapi-icmpsendecho).
