@@ -1,6 +1,6 @@
 # AD Hostname Searcher
 
-Aplicación gráfica nativa para Windows 10/11 x64, escrita en C++17. Consulta los equipos de Active Directory, detecta huecos de numeración y verifica DNS/ping en paralelo. No incluye modo de demostración ni necesita Python, PowerShell o RSAT para funcionar.
+Aplicación gráfica nativa para Windows 10/11 x64, escrita en C++17. Consulta los equipos de Active Directory, detecta huecos de numeración y verifica DNS/ping en paralelo. no usa PowerShell o RSAT para funcionar.
 
 ## Abrir la aplicación
 
